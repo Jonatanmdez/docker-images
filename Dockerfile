@@ -2,7 +2,7 @@ FROM php:7.2-fpm
 
 RUN apt-get update \
 	&& docker-php-ext-install pdo && docker-php-ext-install pdo_mysql \
-	&& docker-php-ext-install pcntl && apt-get install -y libpq-dev \ 
+	&& docker-php-ext-install pcntl && apt-get install -y libpq-dev git unzip zip\ 
     && docker-php-ext-install pdo_pgsql
 
 RUN echo "memory_limit=-1" > /usr/local/etc/php/conf.d/memory-limit.ini
