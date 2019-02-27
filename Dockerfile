@@ -9,5 +9,8 @@ RUN apt-get update \
 RUN echo "memory_limit=-1" > /usr/local/etc/php/conf.d/memory-limit.ini
 
 
+RUN pecl install xdebug && docker-php-ext-enable xdebug 
+
+
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
