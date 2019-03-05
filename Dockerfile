@@ -2,7 +2,7 @@ FROM php:7.2-fpm
 
 RUN mkdir -p /usr/share/man/man1/ /usr/share/man/man3/ /usr/share/man/man7/
 RUN apt-get update \
-	&& docker-php-ext-install pdo && docker-php-ext-install pdo_mysql \
+	&& docker-php-ext-install pdo && docker-php-ext-install pdo_mysql sockets\
 	&& docker-php-ext-install pcntl && apt-get install -y libpq-dev git postgresql-client-9.6  unzip zip\ 
     && docker-php-ext-install pdo_pgsql
 
