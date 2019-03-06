@@ -1,26 +1,35 @@
-FROM php:7.2-fpm
+FROM codecasts/alpine-3.7:php-7.2
 
-RUN mkdir -p /usr/share/man/man1/ /usr/share/man/man3/ /usr/share/man/man7/
-RUN apt-get update \
-	&& docker-php-ext-install pdo && docker-php-ext-install pdo_mysql sockets\
-	&& docker-php-ext-install pcntl && apt-get install -y libpq-dev git postgresql-client-9.6  unzip zip\ 
-    && docker-php-ext-install pdo_pgsql
-
-RUN echo "memory_limit=-1" > /usr/local/etc/php/conf.d/memory-limit.ini
-
-
-RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN set -ex \
+    && apk add --no-cache --update curl\
+    vim \
+    git \
+    curl \
+    bash \
+    postgresql-dev
 
 
-RUN apt-get update && apt-get --no-install-recommends -y install curl software-properties-common gnupg libpng-dev \
-      libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
-      libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
-      libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 \
-      libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
-      libnss3
-RUN curl -sL https://deb.nodesource.com/setup_11.x |  bash -
-RUN apt-get install -y nodejs
+RUN apk add --update php-apache2@php  php-common@php php-pgsql@php php-pdo_pgsql@php php-pdo_mysql@php
+RUN ln -s /usr/bin/php7 /usr/bin/php
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN sed -i '/LoadModule rewrite_module/s/^#//g' /etc/apache2/httpd.conf && \
+    sed -i 's#AllowOverride [Nn]one#AllowOverride All#' /etc/apache2/httpd.conf  && \
+    sed -i '/LoadModule expires_module/s/^#//g' /etc/apache2/httpd.conf && \
+    sed -i '/LoadModule deflate_module/s/^#//g' /etc/apache2/httpd.conf && \
+    sed -i '/LoadModule headers_module/s/^#//g' /etc/apache2/httpd.conf
 
+RUN sed -ri -e 's!#ServerName www.example.com:80!ServerName localhost:80!g'  /etc/apache2/httpd.conf
+RUN mkdir -p /run/apache2/
+
+
+ADD 00_config.ini /etc/php7/conf.d/
+
+
+# Bind logs to stdout
+RUN ln -sf /dev/stdout /var/log/apache2/access.log && \
+    ln -sf /dev/stderr /var/log/apache2/error.log
+
+COPY mpm.conf /etc/apache2/conf.d/mpm.conf
